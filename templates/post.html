@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+<article class="media content-section">
+    <div class="media-body">
+        <a><img class="img-fluid" src="{{ url_for('static', filename='post_pics/'+userPost['filepath']) }}"></a>
+        <div class="media">
+            <div class="media-body">
+                <p class="text-secondary">Author: {{ userPost["firstName"] }} {{ userPost["lastName"] }}
+                <p class="text-secondary">Caption: {{ userPost["caption"] }}</p>
+                <p class="text-info">Date Posted: {{ userPost["postingdate"] }}</p>
+                <p class="text-info">Photo ID: {{ userPost["photoID"] }}</p>
+            </div>
+        </div>
+    </div>
+</article>
+{% endblock content %}

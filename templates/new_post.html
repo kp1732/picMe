@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+<form method="POST" action="/post" enctype="multipart/form-data">
+    <div class="content-section">
+        <h2 class="account-heading">New Post</h2>
+        <!-- helps with XSS security -->
+        {{ form.hidden_tag() }}
+        <!-- use bootstrap stuff to make form look nicer -->
+        <fieldset class="form-group">
+            <!-- caption field -->
+            <div class="form-group">
+                <label class="text-secondary" for="exampleFormControlTextarea2">Caption</label>
+                <!-- check for errors-->
+                {% if form.caption.errors %}
+                {{ form.caption(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.caption.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.caption(class="form-control form-control-lg", rows="3") }}
+                {% endif %}
+            </div>
+            <!-- location field -->
+            <div class="form-group">
+                <label class="text-secondary" for="exampleFormControlTextarea2">Location</label>
+                <!-- check for errors-->
+                {% if form.location.errors %}
+                {{ form.location(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.location.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.location(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+            <!-- image field -->
+            <div class="form-group">
+                {{ form.image.label() }}
+                {{ form.image(class="form-control-file") }}
+                <!-- check for errors-->
+                {% if form.image.errors %}                      
+                {% for error in form.image.errors %}
+                <span class="text-danger">{{ error }}</span></br>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <!-- share with all followers -->
+            <div class="form-check">
+                {{ form.followers(class="form-check-input") }}
+                {{ form.followers.label(class="form-check-input-label") }}
+            </div>
+            <!-- submit button -->
+            <div class="form-group">
+                {{ form.submit(class="btn btn-outline-info") }}
+            </div>
+        </fieldset>
+    </div>
+</form>
+{% endblock content %}

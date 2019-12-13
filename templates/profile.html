@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <div class="media">
+        <img class="rounded-circle account-img" src="{{ url_for('static', filename='profile_pics/'+session['profilePicPath']) }}">
+        <div class="media-body">
+            <h2 class="account-heading">{{ session["username"] }}</h2>
+            <p class="text-secondary">Name: {{ session["firstName"] }} {{ session["lastName"] }}</p>
+            <p class="text-secondary">Bio: {{ session["biography"] }}</p>
+        </div>
+    </div>
+    <!-- FORM HERE -->
+    <div class="content-section">
+        <form method="POST" action="" enctype="multipart/form-data">
+            <!-- helps with XSS security -->
+            {{ form.hidden_tag() }}
+            <!-- use bootstrap stuff to make form look nicer -->
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">Update User Profile</legend>
+                <!-- first name field -->
+                <div class="form-group">
+                    {{ form.firstName.label(class="form-control-label") }}
+                    <!-- check for errors-->
+                    {% if form.firstName.errors %}
+                    {{ form.firstName(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.firstName.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.firstName(class="form-control form-control-lg", rows="3") }}
+                    {% endif %}
+                </div>
+                <!-- lastlastName name field -->
+                <div class="form-group">
+                    {{ form.lastName.label(class="form-control-label") }}
+                    <!-- check for errors-->
+                    {% if form.lastName.errors %}
+                    {{ form.lastName(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.lastName.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.lastName(class="form-control form-control-lg") }}
+                    {% endif %}
+                </div>
+                <!-- biography field -->
+                <div class="form-group">
+                    {{ form.biography.label(class="form-control-label") }}
+                    <!-- check for errors-->
+                    {% if form.biography.errors %}
+                    {{ form.biography(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">  						
+                        {% for error in form.biography.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ form.biography(class="form-control form-control-lg", rows="3") }}
+                    {% endif %}
+                </div>
+                <!-- image field -->
+                <div class="form-group">
+                    {{ form.image.label() }}
+                    {{ form.image(class="form-control-file") }}
+                    <!-- check for errors-->
+                    {% if form.image.errors %}						
+                    {% for error in form.image.errors %}
+                    <span class="text-danger">{{ error }}</span></br>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                <!-- submit button -->
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-outline-info") }}
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+{% block content2 %}
+{% for post in userPosts %}
+<article class="media content-section">
+    <div class="media">
+        <img class="account-img" src="static/post_pics/{{ post['filepath'] }}">
+        <div class="media-body">
+            <h2 class="account-heading">{{ post["photoPoster"] }}</h2>
+            <p class="text-secondary">Author: {{ session["firstName"] }} {{ session["lastName"] }}</p>
+            <p class="text-secondary">Caption: {{ post["caption"] }}</p>
+        </div>
+    </div>
+</article>
+{% endfor %}
+{% endblock content2 %}

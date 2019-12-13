@@ -1,0 +1,38 @@
+Notes
+
+global layout - home and about should always be present. if user not looged in, home will show welcome banner.
+
+	- sidebar will show latest users to join site if not logged in
+	- top bar right will show login and register if user not logged in
+	- top bar right will show profile and logout button if user logged in
+
+Home - if user logged in, show posts from all of there friends that they are allowed to see (all friend groups, posts with allFollowers == True).
+	
+	- posts consist of photo, author, caption
+	- every photo can be clicked on for more information (timestamp, tags, likes)
+	- can be liked
+	- can be tagged (tag has to be approved by person being tagged)
+
+
+Discover - search for users. have the option to follow users from search
+
+	- sidebar here will show "notifications", user can see follow requests
+
+
+Profile - will allow user to update profile data, user can view all of their posts and update them
+	
+	- sidebar here will list groups, can turn sharing on or off for each group as well as leave group
+
+
+
+ - select all users that i did not send a follow request to
+select * from Person where username != "kevinp" and username not in (select username_followed from Follow where username_follower = "kevinp")
+
+
+- table to people i sent requests to 
+select * from Person join follow on person.username = follow.username_followed WHERE follow.username_follower = "kevinp"
+
+
+
+
+

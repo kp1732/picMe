@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    {% for post in data %}
+
+        <article class="media content-section">
+            <div class="media-body">
+                <div class="media">
+                    <a href="{{ url_for('viewPost', post_id=post['photoID']) }}"><img class="account-img" src="static/post_pics/{{post['filepath']}}"></a>
+                    <div class="media-body">
+                        <h2 class="account-heading">{{ post["photoPoster"] }}</h2>
+                        <p class="text-info">Photo ID: {{ post["photoID"] }}</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+    {% endfor %}
+
+{% endblock content %}

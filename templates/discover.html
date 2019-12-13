@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-section">
+    <form method="POST" action="/discover">
+        <!-- helps with XSS security -->
+        {{ form.hidden_tag() }}
+        <!-- use bootstrap stuff to make form look nicer -->
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4"> Search People </legend>
+            <!-- search username field -->
+            <div class="form-group">
+                {{ form.searchQuery.label(class="form-control-label") }}
+                <!-- check for errors-->
+                {% if form.searchQuery.errors %}
+                {{ form.searchQuery(class="form-control form-control-lg is-invalid") }}
+                <div class="invalid-feedback">
+                    {% for error in form.searchQuery.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                {{ form.searchQuery(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+        </fieldset>
+        <!-- search button -->
+        <div class="form-group">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}
+{% block content2 %}
+{% for person in users %}
+<article class="media content-section">
+    <div class="media-body">
+        <div class="media">
+            <!-- update image path here to work with new queries-->
+            <img class="rounded-circle account-img" src="static/profile_pics/{{userPics[person['username']]}}">
+            {% if session["username"] != person["username"] %}
+            <div class="media-body">
+                <h2 class="account-heading">{{ person["username"] }}</h2>
+                <p class="text-info">Bio: {{ person["bio"] }}</p>
+                {% if person not in uxr %}
+                <form method="POST" action="{{ url_for('follow', user=session['username'], requestTo=person['username']) }}">
+                    <!-- follow button -->
+                    <div class="form-group">
+                        {{ formFollow.follow(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+                {% else %}
+                <!-- if follow status is 0 (show pending button) -->
+                {% if usersStatus[person["username"]] == 0 %}
+                <form>
+                    <!-- pending button -->
+                    <div class="form-group">
+                        {{ formFollow.pending(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+                {% else %}
+                <!-- follow status is 1 (following, show unfollow) -->
+                <form method="POST" action="{{ url_for('unfollow', user=session['username'], requestTo=person['username']) }}">
+                    <!-- follow button -->
+                    <div class="form-group">
+                        {{ formFollow.unfollow(class="btn btn-outline-info") }}
+                    </div>
+                </form>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="media-body">
+                <h2 class="account-heading">{{ person["username"] }}</h2>
+                <p class="text-info">Bio: {{ person["bio"] }}</p>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</article>
+{% endfor %}
+{% endblock content2 %}
