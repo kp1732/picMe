@@ -458,7 +458,7 @@ def follow(user, requestTo):
 @login_required
 def unfollow(user, requestTo):
 	# construct query
-	query = 'DELETE FROM Follow WHERE username_followed = "{}" AND username_follower = "{}"'.format(requestTo, user)
+	query = 'DELETE FROM Follow WHERE username_followed = "{}" AND username_follower = "{}";'.format(requestTo, user)
 	queryFetch(query)
 	flash("Unfollowed "+requestTo+" successfully.", 'success')
 	return redirect(url_for('discover'))
