@@ -239,6 +239,8 @@ def login():
 		# salt and hash plaintext password before loopup
 		hashed_password = saltBae(password, salt)
 
+		print(password + " " + salt + " " + hashed_password)
+
 		# construct and execute query
 		query = 'SELECT * FROM Person WHERE username = "{}" AND password = "{}";'.format(username, hashed_password)
 		data = queryFetch(query)
@@ -423,7 +425,7 @@ def discover():
 
 		# check for existing user
 		if users_query:
-			return render_template('discover.html', title='discover', form=form, formFollow=formFollow, users=users_data, userPics=users_pics, usersStatus=users_status, uxr=uxr_data)
+			return render_template('discover.html', title='discover', form=form, formFollow=formFollow, requests=getRequests(session["username"]), users=users_data, userPics=users_pics, usersStatus=users_status, uxr=uxr_data)
 
 		# no user found	
 		flash("No users found.", 'info')

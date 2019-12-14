@@ -20,29 +20,29 @@ class UserRegistrationForm(FlaskForm):
 							Length(min=2, max=20)
 							])
 
-	# required field, 5 < length < 20
+	# required field, 1 < length < 20
 	username = StringField('Username', 
 							validators=[DataRequired(),
-							Length(min=5, max=20)
+							Length(min=1, max=20)
 							])
 
-	# equired field, 8 < length < 64
+	# equired field, 1 < length < 64
 	password = PasswordField('Password', 
 							validators=[DataRequired(),
-							Length(min=8, max=64)
+							Length(min=1, max=64)
 							])
 
-	# equired field, 8 < length < 64
+	# equired field, 1 < length < 64
 	confirmPassword = PasswordField('Confirm Password', 
 							validators=[DataRequired(),
-							Length(min=8, max=64),
+							Length(min=1, max=64),
 							EqualTo('password')
 							])
 
-	# equired field, 10 < length < 1000
+	# equired field, 1 < length < 1000
 	biography = StringField('Biography', 
 							validators=[DataRequired(),
-							Length(min=10, max=1000)],
+							Length(min=1, max=1000)],
 							widget=TextArea(),
 							)
 
@@ -54,16 +54,16 @@ class UserRegistrationForm(FlaskForm):
 # existing user login form
 class UserLoginForm(FlaskForm):
 
-	# required field, 5 < length < 20
+	# required field, 1 < length < 20
 	username = StringField('Username', 
 							validators=[DataRequired(),
-							Length(min=5, max=20)
+							Length(min=1, max=20)
 							])
 
-	# equired field, 8 < length < 64
+	# equired field, 1 < length < 64
 	password = PasswordField('Password', 
 							validators=[DataRequired(),
-							Length(min=8, max=64)
+							Length(min=1, max=64)
 							])
 
 	# remember user via secure cookie
@@ -89,10 +89,10 @@ class UserProfileForm(FlaskForm):
 							Length(min=2, max=20)
 							])
 
-	# 10 < length < 255
+	# 1 < length < 100
 	biography = StringField('Biography', 
 							validators=[
-							Length(min=10, max=100)],
+							Length(min=1, max=100)],
 							widget=TextArea()
 							)
 
