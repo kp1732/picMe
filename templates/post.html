@@ -9,6 +9,18 @@
                 <p class="text-secondary">Caption: {{ userPost["caption"] }}</p>
                 <p class="text-info">Date Posted: {{ userPost["postingdate"] }}</p>
                 <p class="text-info">Photo ID: {{ userPost["photoID"] }}</p>
+
+                <div class="text-info">Tagged:</div>
+                {% for tag in userTag %}
+                    <!-- user tagged photo -->
+                    <div class="text-secondary">{{ tag["username"] }}</div>
+                {% endfor %}
+                
+                <div class="text-info">Likes:</div>
+                {% for like in userLike %}
+                    <!-- user that liked photo -->
+                    <div class="text-secondary">{{ like["username"] }} rated {{ like["rating"] }}</div>
+                {% endfor %}
             </div>
         </div>
     </div>

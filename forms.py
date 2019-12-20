@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, RadioField
 from wtforms.widgets import TextArea
-from wtforms.validators import DataRequired, Length, Email, EqualTo
+from wtforms.validators import DataRequired, InputRequired, Length, Email, EqualTo
 
 
 # new user registration
@@ -97,44 +97,11 @@ class UserProfileForm(FlaskForm):
 							)
 
 	# must be jpg or png
-	image = FileField('Upload new profile picture', validators=[
-													FileAllowed(['jpg', 'png'])
-													])
+	image = FileField('Upload new profile picture', 
+						validators=[FileAllowed(['jpg', 'png'])])
 
 	# submit buttom
 	submit = SubmitField('Update Profile')
-
-
-
-# photo posting form
-class UserPostForm(FlaskForm):
-
-	# 0 < length < 20
-	caption = StringField('Caption', 
-							validators=[DataRequired(),
-							Length(max=100)],
-							widget=TextArea()
-							)
-
-	# 2 < length < 20
-	location = StringField('Location',
-							validators=[
-							DataRequired(),
-							Length(min=2, max=20)
-							])
-
-	# must be jpg or png
-	image = FileField('Upload Image',
-						validators=[
-						DataRequired(),
-						FileAllowed(['jpg', 'png'])
-						])
-
-	# boolean, not much to say about it
-	followers = BooleanField('Share With Followers')
-
-	# submit buttom
-	submit = SubmitField('Post')
 
 
 
@@ -168,4 +135,47 @@ class UserFollowForm(FlaskForm):
 
 	# delete request buttom
 	delete = SubmitField('Delete')
+
+
+
+def makePostForm(groupsData):
+
+	groupNames = [("followers", "All Followers")]
+	for row in groupsData:
+		groupNames.append((row["groupName"], row["groupName"]))
+
+	# photo posting form
+	class UserPostForm(FlaskForm):
+
+		# 0 < length < 20
+		caption = StringField('Caption', 
+								validators=[DataRequired(),
+								Length(max=100)],
+								widget=TextArea()
+								)
+
+		# 2 < length < 20
+		location = StringField('Location',
+								validators=[
+								DataRequired(),
+								Length(min=2, max=20)
+								])
+
+		# must be jpg or png
+		image = FileField('Upload Image',
+							validators=[
+							DataRequired(),
+							FileAllowed(['jpg', 'png'])
+							])
+
+		# choice of groups user can share post with
+		groups = RadioField('Share With', 
+							choices=groupNames,
+							validators=[InputRequired()])
+
+		# submit buttom
+		submit = SubmitField('Post')
+
+
+	return UserPostForm()
 

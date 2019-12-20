@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, session, url_for, redirect, f
 from functools import wraps
 
 # import custom form modules to write our html
-from forms import UserRegistrationForm, UserLoginForm, UserProfileForm, UserPostForm, UserSearchForm, UserFollowForm
+from forms import UserRegistrationForm, UserLoginForm, UserProfileForm, makePostForm, UserSearchForm, UserFollowForm
 
 # import mysql and cursor module
 import pymysql 
@@ -82,8 +82,6 @@ def dataClean(data):
 def saveImage(image_form_data, path):
 	# create new filename for image and save to static/profile_pics
 	newName = randFileName(image_form_data.filename)
-	print(image_form_data.filename)
-	print(newName)
 	imagePath = os.path.join(app.root_path, path, newName)
 	image_form_data.save(imagePath)
 
@@ -160,12 +158,18 @@ def home():
 	if "username" not in session:
 		return redirect(url_for("index"))
 
-	# select descending posts from followers, users in groups i own, users in groups i'm in (UNION will remove duplicates)
-	posts_query = ''' SELECT Photo.filepath,Photo.postingdate,Photo.photoPoster,Photo.photoID,Photo.caption,Person.firstName,Person.lastName FROM Photo JOIN Person 
-				WHERE Photo.photoPoster = Person.username AND Photo.photoPoster IN (
-				SELECT username_followed FROM Follow WHERE username_follower = "{}" AND followstatus = 1 UNION
-				SELECT member_username FROM BelongTo WHERE owner_username = "{}" UNION
-				SELECT member_username FROM belongTo WHERE groupName IN (SELECT groupName FROM belongTo WHERE member_username = "{}")) ORDER BY Photo.postingdate DESC;'''.format(session["username"],  session["username"],  session["username"])
+	# select descending posts from followers, users in groups i own, users in groups i'm in and myself(UNION will remove duplicates)
+	posts_query = '''SELECT Photo.filepath,Photo.postingdate,Photo.photoPoster,Photo.photoID,Photo.caption,Person.firstName,Person.lastName 
+					FROM Photo JOIN Person ON Photo.photoPoster = Person.username
+					WHERE Photo.allFollowers = 1 AND Photo.photoPoster IN (
+					SELECT username_followed from Follow WHERE username_follower = "{}" AND followstatus = 1 UNION
+					SELECT username FROM Person WHERE username = "{}") UNION
+					SELECT Photo.filepath,Photo.postingdate,Photo.photoPoster,Photo.photoID,Photo.caption,Person.firstName,Person.lastName 
+					FROM Photo JOIN Person ON Photo.photoPoster = Person.username
+					WHERE Photo.photoID IN (
+					SELECT photoID from SharedWith WHERE groupName IN (
+					SELECT groupName FROM belongTo WHERE member_username = "{}" UNION SELECT groupName FROM Friendgroup WHERE groupOwner = "{}"))
+					ORDER BY postingdate DESC;'''.format(session["username"], session["username"], session["username"],  session["username"])
 	data = queryFetchAll(posts_query)
 
 	# create form for user requests management
@@ -238,8 +242,6 @@ def login():
 
 		# salt and hash plaintext password before loopup
 		hashed_password = saltBae(password, salt)
-
-		print(password + " " + salt + " " + hashed_password)
 
 		# construct and execute query
 		query = 'SELECT * FROM Person WHERE username = "{}" AND password = "{}";'.format(username, hashed_password)
@@ -337,16 +339,22 @@ def profile():
 @app.route('/post', methods=['GET','POST'])
 @login_required
 def postPhoto():
+
+	# get all groups I can share to for builfing form
+	query = '''SELECT groupName FROM belongTo WHERE member_username = "{}" UNION 
+	SELECT groupName FROM Friendgroup WHERE groupOwner = "{}";'''.format(session["username"], session["username"])
+	data = queryFetchAll(query)
+
 	# user post form 
-	form = UserPostForm()
+	form = makePostForm(data)
 
 	# check for GET
 	if request.method == "GET":
 
 		# create form for user requests management
-		formFollow = UserFollowForm()
+		formFollow = UserFollowForm(data)
 
-		return render_template('new_post.html', title='Update Post', form=form, requests=getRequests(session["username"]), formFollow=formFollow)
+		return render_template('new_post.html', title='New Post', form=form, userGroups=data, requests=getRequests(session["username"]), formFollow=formFollow)
 
 	# if valid input
 	if form.validate_on_submit():
@@ -355,14 +363,31 @@ def postPhoto():
 		caption = form.caption.data
 		location = form.location.data
 		image = saveImage(form.image.data, 'static/post_pics')
-		followers = int(form.followers.data)
+		shareWith = form.groups.data
+		followers = 0
+
+		# check for followers selection
+		if shareWith == "followers":
+			followers = 1
+		else:
+			# look up owner of group user wants to share to
+			query1 = 'SELECT groupOwner FROM Friendgroup WHERE groupName = "{}";'.format(shareWith)
+			data1 = queryFetch(query1)
 
 		# try to insert user post
 		try:
 			# query database and insert user post
-			query = 'INSERT INTO Photo (photoID, postingdate, filepath, allFollowers, caption, photoPoster) VALUES (NULL, CURRENT_TIMESTAMP, "{}", {}, "{}", "{}");'.format(image, followers, caption, session["username"])
-			queryFetch(query)
+			query2 = 'INSERT INTO Photo (photoID, postingdate, filepath, allFollowers, caption, photoPoster) VALUES (NULL, CURRENT_TIMESTAMP, "{}", {}, "{}", "{}");'.format(image, followers, caption, session["username"])
+			queryFetch(query2)
+			
+			if not followers:
+				# get key of last inserted row
+				lastInsert = queryFetch('SELECT LAST_INSERT_ID();')
+				query3 = 'INSERT INTO SharedWith (groupOwner, groupName, photoID) VALUES ("{}", "{}", "{}")'.format(data1["groupOwner"], shareWith, lastInsert["LAST_INSERT_ID()"])
+				queryFetch(query3)
+
 			flash("Post successful!", 'success')
+
 		except Exception as err:
 			print(err)
 			flash("Could not post! Databse error occured.", 'danger')
@@ -375,15 +400,23 @@ def postPhoto():
 @login_required
 def viewPost(post_id):
 	# retrive photo post data with given id
-	query = 'SELECT * FROM Person, Photo WHERE Person.username = Photo.photoPoster AND Photo.photoID = {};'.format(post_id)
-	data = queryFetch(query)
+	query1 = 'SELECT * FROM Person, Photo WHERE Person.username = Photo.photoPoster AND Photo.photoID = {};'.format(post_id)
+	data1 = queryFetch(query1)
+
+	# retrive likes data
+	query2 = 'SELECT * FROM Likes WHERE photoID = "{}";'.format(post_id)
+	data2 = queryFetchAll(query2)
+
+	# retrive tag data
+	query3 = 'SELECT * FROM Tagged WHERE photoID = {} AND tagstatus = 1;'.format(post_id)
+	data3 = queryFetchAll(query3)
 
 	# check result
-	if data:
+	if data1:
 		# create form for user requests management
 		formFollow = UserFollowForm()
 
-		return render_template('post.html', title='View Post', imgSource=data["filepath"], userPost=data, requests=getRequests(session["username"]), formFollow=formFollow)
+		return render_template('post.html', title='View Post', imgSource=data1["filepath"], userPost=data1, userLike=data2, userTag=data3, requests=getRequests(session["username"]), formFollow=formFollow)
 
 	return redirect(url_for('not_found'))
 
@@ -423,7 +456,7 @@ def discover():
 		# create dictionary with username:follow status from requests_data
 		users_status = makeUsersStatus(requests_data)
 
-		# check for existing user
+		# check for data
 		if users_query:
 			return render_template('discover.html', title='discover', form=form, formFollow=formFollow, requests=getRequests(session["username"]), users=users_data, userPics=users_pics, usersStatus=users_status, uxr=uxr_data)
 

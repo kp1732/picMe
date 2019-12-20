@@ -48,10 +48,11 @@
                 {% endfor %}
                 {% endif %}
             </div>
-            <!-- share with all followers -->
-            <div class="form-check">
-                {{ form.followers(class="form-check-input") }}
-                {{ form.followers.label(class="form-check-input-label") }}
+            <!-- share with followers or groups -->
+            <div class="form-group">
+                <!-- loop through groups and display -->
+                {{ form.groups.label() }}
+                {{ form.groups() }}
             </div>
             <!-- submit button -->
             <div class="form-group">
